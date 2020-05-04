@@ -28,9 +28,8 @@
   "required": [
     "userId",
     "todoId",
-    "createdAt",
-    "dueDate",
     "name",
+    "dueDate",
     "done"
   ],
   "additionalProperties": false
