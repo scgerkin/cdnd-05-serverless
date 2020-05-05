@@ -10,12 +10,12 @@ provider:
   runtime: nodejs12.x
 
   stage: ${opt:stage, 'dev'}
-  region: ${opt:region, 'us-west-2'}
+  region: ${opt:region, 'us-east-1'}
 
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
     USERS_TABLE: Users-${self:provider.stage}
-    IMAGES_BUCKET: todo-images-scgrk-${self:provider.stage}
+    IMAGES_BUCKET: cdnd-todo-images-scgrk-${self:provider.stage}
     AUTH_0_SECRET_ID: Auth0Secret-${self:provider.stage}
 
 custom:
@@ -170,6 +170,7 @@ resources:
 
     ImagesBucket:
       Type: AWS::S3::Bucket
+      DependsOn: ImagesBucketTopicPolicy
       Properties:
         BucketName: ${self:provider.environment.IMAGES_BUCKET}
         NotificationConfiguration:
