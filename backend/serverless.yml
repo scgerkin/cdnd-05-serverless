@@ -15,6 +15,7 @@ provider:
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
     USERS_TABLE: Users-${self:provider.stage}
+    IMAGES_BUCKET: todo-images-scgrk-${self:provider.stage}
 
 custom:
   documentation:
@@ -73,6 +74,27 @@ functions:
 
 resources:
   Resources:
+    ### API Gateway
+    GatewayResponseDefault4xx:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
+        ResponseType: DEFAULT_4XX
+        RestApiId: !Ref ApiGatewayRestApi
+
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
+
+    ### DynamoDB Resources
     TodosDynamoDBTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -84,6 +106,7 @@ resources:
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.TODOS_TABLE}
+
     UsersDynamoDBTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -95,3 +118,62 @@ resources:
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.USERS_TABLE}
+
+    ### S3 Resources
+    # ImagesBucketTopic:
+    #   Type: AWS::SNS::Topic
+    #   Properties:
+    #     TopicName: ${self:provider.environment.IMAGES_BUCKET}-SNSTopic
+    #     DisplayName: ${self:provider.environment.IMAGES_BUCKET}-SNSTopic
+
+    # ImagesBucketTopicPolicy:
+    #   Type: AWS::SNS::TopicPolicy
+    #   Properties:
+    #     Topic: !Ref ImagesBucketTopic
+    #     PolicyDocument:
+    #       Version: "2012-10-17"
+    #       Statement:
+    #         - Effect: Allow
+    #           Principal:
+    #             AWS: '*'
+    #           Action: 'sns:Publish'
+    #           Resources: !Ref ImagesBucketTopic
+    #           Condition:
+    #             ArnEquals: !GetAtt ImagesBucket.Arn
+
+    # ImagesBucket:
+    #   Type: AWS::S3::Bucket
+    #   Properties:
+    #     BucketName: ${self:provider.environment.IMAGES_BUCKET}
+    #     NotificationConfiguration:
+    #       TopicConfigurations:
+    #         - Event: s3:ObjectCreated:Put
+    #           Topic: !Ref ImagesBucketTopic
+    #     CorsConfiguration:
+    #       CorsRules:
+    #         -
+    #           AllowedOrigins:
+    #             - '*'
+    #           AllowedHeaders:
+    #             - '*'
+    #           AllowedMethods:
+    #             - GET
+    #             - PUT
+    #             - POST
+    #             - DELETE
+    #             - HEAD
+    #           MaxAge: 3000
+
+    # ImagesBucketPolicy:
+    #   Type: AWS::S3::BucketPolicy
+    #   Properties:
+    #     PolicyDocument:
+    #       Id: ${self:provider.environment.IMAGES_BUCKET}-policy
+    #       Version: "2012-10-17"
+    #       Statement:
+    #         - Sid: PublicReadForGetBucketObjects
+    #           Effect: Allow
+    #           Principal: '*'
+    #           Action: 's3:GetObject'
+    #           Resource: 'arn:aws:s3:::${self:provider.environment.IMAGES_BUCKET}/*'
+    #     Bucket: !Ref ImagesBucket
