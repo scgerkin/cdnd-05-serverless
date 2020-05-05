@@ -16,6 +16,7 @@ provider:
     TODOS_TABLE: Todos-${self:provider.stage}
     USERS_TABLE: Users-${self:provider.stage}
     IMAGES_BUCKET: todo-images-scgrk-${self:provider.stage}
+    AUTH_0_SECRET_ID: Auth0Secret-${self:provider.stage}
 
 custom:
   documentation:
@@ -120,60 +121,110 @@ resources:
         TableName: ${self:provider.environment.USERS_TABLE}
 
     ### S3 Resources
-    # ImagesBucketTopic:
-    #   Type: AWS::SNS::Topic
-    #   Properties:
-    #     TopicName: ${self:provider.environment.IMAGES_BUCKET}-SNSTopic
-    #     DisplayName: ${self:provider.environment.IMAGES_BUCKET}-SNSTopic
+    ImagesBucketTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: ${self:provider.environment.IMAGES_BUCKET}-SNSTopic
+        DisplayName: ${self:provider.environment.IMAGES_BUCKET}-SNSTopic
 
-    # ImagesBucketTopicPolicy:
-    #   Type: AWS::SNS::TopicPolicy
-    #   Properties:
-    #     Topic: !Ref ImagesBucketTopic
-    #     PolicyDocument:
-    #       Version: "2012-10-17"
-    #       Statement:
-    #         - Effect: Allow
-    #           Principal:
-    #             AWS: '*'
-    #           Action: 'sns:Publish'
-    #           Resources: !Ref ImagesBucketTopic
-    #           Condition:
-    #             ArnEquals: !GetAtt ImagesBucket.Arn
+    ImagesBucketTopicPolicy:
+      Type: AWS::SNS::TopicPolicy
+      Properties:
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                AWS: "*"
+              Action: sns:Publish
+              Resource:
+                !Ref ImagesBucketTopic
+              Condition:
+                ArnLike:
+                  AWS:SourceArn: arn:aws:s3:::${self:provider.environment.IMAGES_BUCKET}
+        Topics:
+          - !Ref ImagesBucketTopic
 
-    # ImagesBucket:
-    #   Type: AWS::S3::Bucket
-    #   Properties:
-    #     BucketName: ${self:provider.environment.IMAGES_BUCKET}
-    #     NotificationConfiguration:
-    #       TopicConfigurations:
-    #         - Event: s3:ObjectCreated:Put
-    #           Topic: !Ref ImagesBucketTopic
-    #     CorsConfiguration:
-    #       CorsRules:
-    #         -
-    #           AllowedOrigins:
-    #             - '*'
-    #           AllowedHeaders:
-    #             - '*'
-    #           AllowedMethods:
-    #             - GET
-    #             - PUT
-    #             - POST
-    #             - DELETE
-    #             - HEAD
-    #           MaxAge: 3000
+    ImagesBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.IMAGES_BUCKET}
+        NotificationConfiguration:
+          TopicConfigurations:
+            - Event: s3:ObjectCreated:Put
+              Topic: !Ref ImagesBucketTopic
+        CorsConfiguration:
+          CorsRules:
+            -
+              AllowedOrigins:
+                - '*'
+              AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - DELETE
+                - HEAD
+              MaxAge: 3000
 
-    # ImagesBucketPolicy:
-    #   Type: AWS::S3::BucketPolicy
-    #   Properties:
-    #     PolicyDocument:
-    #       Id: ${self:provider.environment.IMAGES_BUCKET}-policy
-    #       Version: "2012-10-17"
-    #       Statement:
-    #         - Sid: PublicReadForGetBucketObjects
-    #           Effect: Allow
-    #           Principal: '*'
-    #           Action: 's3:GetObject'
-    #           Resource: 'arn:aws:s3:::${self:provider.environment.IMAGES_BUCKET}/*'
-    #     Bucket: !Ref ImagesBucket
+    ImagesBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        PolicyDocument:
+          Id: ${self:provider.environment.IMAGES_BUCKET}-policy
+          Version: "2012-10-17"
+          Statement:
+            - Sid: PublicReadForGetBucketObjects
+              Effect: Allow
+              Principal: '*'
+              Action: 's3:GetObject'
+              Resource: 'arn:aws:s3:::${self:provider.environment.IMAGES_BUCKET}/*'
+        Bucket: !Ref ImagesBucket
+
+    ### Secrets Management
+    KMSKey:
+      Type: AWS::KMS::Key
+      Properties:
+        Description: KMS key to encrypt Auth0 secret
+        KeyPolicy:
+          Version: '2012-10-17'
+          Id: key-default-1
+          Statement:
+            - Sid: Root administration of the key
+              Effect: Allow
+              Principal:
+                AWS:
+                  Fn::Join:
+                  - ':'
+                  - - 'arn:aws:iam:'
+                    - Ref: AWS::AccountId
+                    - 'root'
+              Action:
+                - 'kms:*'
+              Resource: '*'
+            - Sid: User administration of the key
+              Effect: Allow
+              Principal:
+                AWS:
+                  Fn::Join:
+                  - ':'
+                  - - 'arn:aws:iam:'
+                    - Ref: AWS::AccountId
+                    - 'user/scgrk'
+              Action:
+                - 'kms:*'
+              Resource: '*'
+
+    KMSKeyAlias:
+      Type: AWS::KMS::Alias
+      Properties:
+        AliasName: alias/auth0Key-${self:provider.stage}
+        TargetKeyId: !Ref KMSKey
+
+    Auth0Secret:
+      Type: AWS::SecretsManager::Secret
+      Properties:
+        Name: ${self:provider.environment.AUTH_0_SECRET_ID}
+        Description: Auth0 Secret
+        KmsKeyId: !Ref KMSKey
