@@ -3,7 +3,7 @@ import 'source-map-support/register'
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
 
 import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
-import { extractJwt } from '../../utils/jwtExtractor'
+import { extractJwt } from '../utils'
 import { createNew } from '../../services/todoService'
 import { TodoItem } from '../../models/TodoItem'
 

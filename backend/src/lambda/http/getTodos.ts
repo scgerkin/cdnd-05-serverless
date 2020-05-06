@@ -3,7 +3,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } f
 import { createLogger } from '../../utils/logger'
 import { getAllTodos } from '../../services/todoService'
 import { parseUserId } from '../../auth/utils'
-import { extractJwt } from '../../utils/jwtExtractor'
+import { extractJwt } from '../utils'
 
 const logger = createLogger('getAllTodos');
 
