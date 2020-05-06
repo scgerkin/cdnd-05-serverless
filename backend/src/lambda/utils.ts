@@ -12,7 +12,9 @@ const logger = createLogger('utils');
  */
 export function getUserId(event: APIGatewayProxyEvent): string {
   const jwtToken = extractJwt(event);
-  return parseUserId(jwtToken)
+  const userId = parseUserId(jwtToken);
+  logger.debug("User ID", userId);
+  return parseUserId(userId);
 }
 
 /**
@@ -24,10 +26,10 @@ export function getUserId(event: APIGatewayProxyEvent): string {
  */
 export function extractJwt(event: APIGatewayProxyEvent): string {
   const authorization = event.headers.Authorization;
-  logger.info("Authorization", authorization);
+  logger.debug("Authorization", authorization);
 
   const authParts = authorization.split(' ');
-  logger.info("Auth parts", authParts);
+  logger.debug("Auth parts", authParts);
 
   if (authParts[0].toLowerCase() !== "bearer") {
     logger.error("Invalid Auth header", authParts);
@@ -35,7 +37,7 @@ export function extractJwt(event: APIGatewayProxyEvent): string {
   }
 
   const token = authParts[1];
-  logger.info("JWT Token", token);
+  logger.debug("JWT Token", token);
 
   if (!token) {
     logger.error("Null token", token);
