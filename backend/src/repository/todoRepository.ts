@@ -6,6 +6,7 @@ import { TodoItem } from '../models/TodoItem'
 import * as DynamoDB from 'aws-sdk/clients/dynamodb'
 
 import { createLogger } from '../utils/logger'
+import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 
 const logger = createLogger('TodoRepository');
 
@@ -34,6 +35,17 @@ export class TodoRepository {
 
     logger.info('Items', items);
     return items as TodoItem[];
+  }
+
+  async createTodo(todoItem: TodoItem): Promise<TodoItem> {
+    logger.info("Initiate 'createTodo'", todoItem);
+
+    await this.docClient.put({
+      TableName: this.todoTable,
+      Item: todoItem
+    }).promise();
+
+    return todoItem;
   }
 }
 
