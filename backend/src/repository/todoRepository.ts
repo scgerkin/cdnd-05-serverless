@@ -36,6 +36,7 @@ export class TodoRepository {
     return items as TodoItem[];
   }
 
+  // TODO use .get(TableName: xxx, Key {id: xxx})
   async getByTodoId(compositeId: TodoCompositeId): Promise<TodoItem> {
     const result = await this.docClient.query({
       TableName: this.todoTable,
@@ -52,7 +53,7 @@ export class TodoRepository {
   }
 
   async put(todoItem: TodoItem): Promise<TodoItem> {
-    logger.debug("Initiate 'createTodo'", todoItem);
+    logger.debug("Initiate 'put'", todoItem);
 
     await this.docClient.put({
       TableName: this.todoTable,
@@ -60,6 +61,27 @@ export class TodoRepository {
     }).promise();
 
     return todoItem;
+  }
+
+  async updateExisting(todoItem: TodoItem): Promise<TodoItem> {
+    logger.debug("Initiate update", todoItem);
+
+    const result: DynamoDB.UpdateItemOutput = await this.docClient.update({
+      TableName: this.todoTable,
+      Key: {
+        userId: todoItem.userId,
+        todoId: todoItem.todoId
+      },
+      UpdateExpression: "set done = :done, dueDate = :dueDate, attachmentUrl = :attachmentUrl",
+      ExpressionAttributeValues: {
+        ":done": todoItem.done,
+        ":dueDate": todoItem.dueDate,
+        ":attachmentUrl": todoItem.attachmentUrl
+      },
+      ReturnValues:"UPDATED_NEW"
+    }).promise();
+
+    return result as TodoItem;
   }
 
   async delete(compositeId: TodoCompositeId): Promise<any> {

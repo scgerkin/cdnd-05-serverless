@@ -17,6 +17,7 @@ provider:
     TODOS_TABLE: TodoItems-${self:provider.stage}
     USER_ID_INDEX: userId
     IMAGES_BUCKET: cdnd-todo-images-scgrk-${self:provider.stage}
+    URL_EXPIRATION: 300
     AUTH_0_SECRET_ID: Auth0Secret-${self:provider.stage}
 
   iamRoleStatements:
