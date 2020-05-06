@@ -13,7 +13,7 @@ const logger = createLogger('getAllTodos');
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
 
-  let jwt: String;
+  let jwt: string;
   try {
     jwt = extractJwt(event);
   }
