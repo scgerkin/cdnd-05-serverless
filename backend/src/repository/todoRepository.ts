@@ -36,12 +36,13 @@ export class TodoRepository {
     return items as TodoItem[];
   }
 
-  async getByTodoId(todoId: string): Promise<TodoItem> {
+  async getByTodoId(compositeId: TodoCompositeId): Promise<TodoItem> {
     const result = await this.docClient.query({
       TableName: this.todoTable,
-      KeyConditionExpression: 'todoId = :todoId',
+      KeyConditionExpression: 'userId = :userId AND todoId = :todoId',
       ExpressionAttributeValues: {
-        ':todoId': todoId
+        ':userId': compositeId.userId,
+        ':todoId': compositeId.todoId
       }
     }).promise();
 
