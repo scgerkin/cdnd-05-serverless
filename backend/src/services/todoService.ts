@@ -4,12 +4,13 @@ import {TodoUpdate} from '../models/TodoUpdate'
 import { parseUserId } from '../auth/utils'
 import {TodoRepository} from '../repository/todoRepository'
 import { CreateTodoRequest } from '../requests/CreateTodoRequest';
+import { DeleteTodoRequest } from '../requests/DeleteTodoRequest'
 
 const repo = new TodoRepository();
 
 export async function getAllTodos(jwtToken: string): Promise<TodoItem[]> {
   const userId = getUserId(jwtToken);
-  return repo.getAllTodos(userId);
+  return repo.getAllByUser(userId);
 }
 
 export async function createNew(createTodo: CreateTodoRequest, jwtToken: string): Promise<TodoItem> {
@@ -23,7 +24,16 @@ export async function createNew(createTodo: CreateTodoRequest, jwtToken: string)
     done: false
   });
 
-  return repo.createTodo(newTodo);
+  return repo.addNew(newTodo);
+}
+
+export async function deleteTodo(todoId: string, jwtToken: string) {
+  const deleteRequest: DeleteTodoRequest = ({
+    userId: getUserId(jwtToken),
+    todoId: todoId
+  });
+
+  return repo.delete(deleteRequest);
 }
 
 function getUserId(jwtToken: string): string {
