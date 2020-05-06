@@ -36,7 +36,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     logger.error("Error deleting Todo Item", error);
     return {
       statusCode: 400,
-      body: JSON.stringify(error);
+      body: JSON.stringify(error)
     }
   }
 
