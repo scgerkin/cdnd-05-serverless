@@ -12,10 +12,11 @@ const logger = createLogger('utils');
  */
 export function getUserId(event: APIGatewayProxyEvent): string {
   const jwtToken = extractJwt(event);
-  const userId = parseUserId(jwtToken);
+  //TODO implement parsing user ID
+  //const userId = parseUserId(jwtToken);
+  const userId = "001";
   logger.debug("User ID", userId);
-  //return parseUserId(userId);
-  return "001";
+  return userId;
 }
 
 /**

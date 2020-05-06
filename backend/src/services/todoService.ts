@@ -9,15 +9,14 @@ import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 
 const repo = new TodoRepository();
 
-export async function getAllTodos(jwtToken: string): Promise<TodoItem[]> {
-  const userId = parseUserId(jwtToken);
+export async function getAllTodos(userId: string): Promise<TodoItem[]> {
   return repo.getAllByUserId(userId);
 }
 
-export async function createNew(createTodo: CreateTodoRequest, jwtToken: string): Promise<TodoItem> {
+export async function createNew(createTodo: CreateTodoRequest, userId: string): Promise<TodoItem> {
 
   const newTodo: TodoItem = ({
-    userId: parseUserId(jwtToken),//FIXME should take user id directly not token
+    userId: userId,
     todoId: uuid.v4(),
     createdAt: String(new Date()),
     name: createTodo.name,
@@ -28,13 +27,8 @@ export async function createNew(createTodo: CreateTodoRequest, jwtToken: string)
   return repo.put(newTodo);
 }
 
-export async function deleteTodo(todoId: string, jwtToken: string) {
-  const deleteRequest: TodoCompositeId = ({
-    userId: parseUserId(jwtToken),//FIXME should take user id directly not token
-    todoId: todoId
-  });
-
-  return repo.delete(deleteRequest);
+export async function deleteTodo(todoCompositeId: TodoCompositeId) {
+  return repo.delete(todoCompositeId);
 }
 
 export async function updateExisting(updateTodo: UpdateTodoRequest, compositeId: TodoCompositeId): Promise<TodoItem> {
