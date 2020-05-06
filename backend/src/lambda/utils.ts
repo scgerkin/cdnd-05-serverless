@@ -14,7 +14,8 @@ export function getUserId(event: APIGatewayProxyEvent): string {
   const jwtToken = extractJwt(event);
   const userId = parseUserId(jwtToken);
   logger.debug("User ID", userId);
-  return parseUserId(userId);
+  //return parseUserId(userId);
+  return "001";
 }
 
 /**

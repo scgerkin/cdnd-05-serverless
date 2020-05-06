@@ -4,19 +4,20 @@ import {TodoUpdate} from '../models/TodoUpdate'
 import { parseUserId } from '../auth/utils'
 import {TodoRepository} from '../repository/todoRepository'
 import { CreateTodoRequest } from '../requests/CreateTodoRequest';
-import { DeleteTodoRequest } from '../requests/DeleteTodoRequest'
+import { TodoCompositeId } from '../models/TodoCompositeId'
+import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 
 const repo = new TodoRepository();
 
 export async function getAllTodos(jwtToken: string): Promise<TodoItem[]> {
-  const userId = getUserId(jwtToken);
-  return repo.getAllByUser(userId);
+  const userId = parseUserId(jwtToken);
+  return repo.getAllByUserId(userId);
 }
 
 export async function createNew(createTodo: CreateTodoRequest, jwtToken: string): Promise<TodoItem> {
 
   const newTodo: TodoItem = ({
-    userId: getUserId(jwtToken),
+    userId: parseUserId(jwtToken),//FIXME should take user id directly not token
     todoId: uuid.v4(),
     createdAt: String(new Date()),
     name: createTodo.name,
@@ -24,20 +25,34 @@ export async function createNew(createTodo: CreateTodoRequest, jwtToken: string)
     done: false
   });
 
-  return repo.addNew(newTodo);
+  return repo.put(newTodo);
 }
 
 export async function deleteTodo(todoId: string, jwtToken: string) {
-  const deleteRequest: DeleteTodoRequest = ({
-    userId: getUserId(jwtToken),
+  const deleteRequest: TodoCompositeId = ({
+    userId: parseUserId(jwtToken),//FIXME should take user id directly not token
     todoId: todoId
   });
 
   return repo.delete(deleteRequest);
 }
 
-function getUserId(jwtToken: string): string {
-  //FIXME
-  //return parseUserId(jwtToken);
-  return "001";
+export async function updateExisting(updateTodo: UpdateTodoRequest, compositeId: TodoCompositeId): Promise<TodoItem> {
+  const existingItem = await repo.getByTodoId(compositeId.todoId);
+
+  if (existingItem.userId !== compositeId.userId) {
+    throw new Error('That item does not belong to the current user.');
+  }
+
+  const putTodo: TodoItem = ({
+    userId: existingItem.userId,
+    todoId: existingItem.todoId,
+    createdAt: existingItem.createdAt,
+    name: updateTodo.name,
+    dueDate: updateTodo.dueDate,
+    done: updateTodo.done,
+    attachmentUrl: existingItem.attachmentUrl
+  });
+
+  return await repo.put(putTodo);
 }
