@@ -4,8 +4,8 @@
       "es2017"
     ],
     "moduleResolution": "node",
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,// FIXME: turn back on when done
+    "noUnusedParameters": false,// FIXME: turn back on when done
     "sourceMap": true,
     "target": "es2017",
     "outDir": "lib"
