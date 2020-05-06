@@ -1,8 +1,8 @@
 import * as DynamoDB from 'aws-sdk/clients/dynamodb'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 
+import { TodoCompositeId } from '../models/TodoCompositeId'
 import { TodoItem } from '../models/TodoItem'
-import { DeleteTodoRequest } from '../requests/DeleteTodoRequest'
 
 import { createLogger } from '../utils/logger'
 
@@ -16,7 +16,7 @@ export class TodoRepository {
     private readonly userIdIndex = process.env.USER_ID_INDEX
   ) {}
 
-  async getAllByUser(userId: string): Promise<TodoItem[]> {
+  async getAllByUserId(userId: string): Promise<TodoItem[]> {
     logger.info('Initiate \'getAllTodos\'', userId);
 
     const scanResult = await this.docClient.query({
@@ -35,7 +35,7 @@ export class TodoRepository {
     return items as TodoItem[];
   }
 
-  async addNew(todoItem: TodoItem): Promise<TodoItem> {
+  async put(todoItem: TodoItem): Promise<TodoItem> {
     logger.info("Initiate 'createTodo'", todoItem);
 
     await this.docClient.put({
@@ -46,16 +46,15 @@ export class TodoRepository {
     return todoItem;
   }
 
-  async delete(deleteRequest: DeleteTodoRequest): Promise<any> {
-    logger.info("Initiate delete", deleteRequest);
+  async delete(compositeId: TodoCompositeId): Promise<any> {
+    logger.info("Initiate delete", compositeId);
     await this.docClient.delete({
       TableName: this.todoTable,
       Key: {
-        "userId": deleteRequest.userId,
-        "todoId": deleteRequest.todoId
+        "userId": compositeId.userId,
+        "todoId": compositeId.todoId
       }
     }).promise();
-
   }
 }
 
