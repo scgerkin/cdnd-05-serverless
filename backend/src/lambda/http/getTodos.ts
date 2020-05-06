@@ -3,40 +3,29 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } f
 import { createLogger } from '../../utils/logger'
 import { getAllTodos } from '../../services/todoService'
 import { parseUserId } from '../../auth/utils'
+import { extractJwt } from '../../utils/jwtExtractor'
 
 const logger = createLogger('getAllTodos');
 
-// TODO pull auth validation logic into a service to reduce duplication
 // TODO Implement middleware for headers/error handling
 // TODO Parse ID from JWT to use
 // TODO Validate existing ID (consider extracting to a service)
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
 
-  const authorization = event.headers.Authorization;
-  let authParts = authorization.split(' ');
-
-  if (authParts[0].toLowerCase() !== "bearer") {
-    logger.error('Invalid authorization header, missing \'Bearer\'', authorization);
-    return {
-      statusCode: 400,
-      body: JSON.stringify({error: 'Invalid authorization header.'})
-    }
+  let jwt: String;
+  try {
+    jwt = extractJwt(event);
   }
-
-  const token = authParts[1];
-  logger.info('JWT Token', token);
-
-  if (!!token) {
-    logger.error('Missing JWT', authorization);
+  catch (error) {
     return {
       statusCode: 400,
-      body: JSON.stringify({error: 'Invalid or missing auth token.'})
+      body: JSON.stringify(error)
     }
   }
 
   // TODO parse from jwt
-  //const userId = parseUserId(token);
+  //const userId = parseUserId(jwt);
   const userId = '001';
   logger.info('userId', userId);
 
