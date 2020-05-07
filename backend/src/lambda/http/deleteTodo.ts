@@ -20,6 +20,9 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     logger.error("Error retrieving User ID", error);
     return {
       statusCode: 400,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify(error)
     }
   }
@@ -36,6 +39,9 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     logger.error("Error deleting Todo Item", error);
     return {
       statusCode: 400,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify(error)
     }
   }
@@ -43,6 +49,9 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   logger.info("Deleted Item by todo ID", todoId);
   return {
     statusCode: 202,
-    body: JSON.stringify(todoId)
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    },
+    body: ""
   }
 }

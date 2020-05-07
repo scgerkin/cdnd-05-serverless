@@ -5,7 +5,6 @@ import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } f
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
 import { updateExisting } from '../../services/todoService'
 import { getUserId } from '../utils'
-import { TodoItem } from '../../models/TodoItem'
 import { TodoCompositeId } from '../../models/TodoCompositeId'
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -24,23 +23,31 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   catch (error) {
     return {
       statusCode: 400,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify(error)
     }
   }
 
-  let updatedItem: TodoItem;
   try {
-    updatedItem = await updateExisting(updatedTodo, compositeId);
+    await updateExisting(updatedTodo, compositeId);
   }
   catch (error) {
     return {
       statusCode: 401,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify(error)
     }
   }
 
   return {
     statusCode: 200,
-    body: JSON.stringify(updatedItem)
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    },
+    body: ""
   }
 }

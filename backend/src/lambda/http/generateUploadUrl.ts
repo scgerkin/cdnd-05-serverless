@@ -37,6 +37,9 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   catch (error) {
     return {
       statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify({
         error: "Unable to update Todo Item with image url."
       })
@@ -51,6 +54,9 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
   return {
     statusCode: 201,
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    },
     body: JSON.stringify({
       uploadUrl: url
     })
