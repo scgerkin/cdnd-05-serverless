@@ -1,6 +1,5 @@
 import * as DynamoDB from 'aws-sdk/clients/dynamodb'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
-
 import { TodoCompositeId } from '../models/TodoCompositeId'
 import { TodoItem } from '../models/TodoItem'
 
@@ -8,7 +7,6 @@ import { createLogger } from '../utils/logger'
 
 const logger = createLogger('TodoRepository');
 
-// CONSIDER refactoring as functions rather than class for optimization
 export class TodoRepository {
 
   constructor(
@@ -35,7 +33,6 @@ export class TodoRepository {
     return items as TodoItem[];
   }
 
-  // TODO use .get(TableName: xxx, Key {id: xxx})
   async getByTodoId(compositeId: TodoCompositeId): Promise<TodoItem> {
     const result = await this.docClient.query({
       TableName: this.todoTable,
@@ -85,6 +82,7 @@ export class TodoRepository {
 
   async delete(compositeId: TodoCompositeId): Promise<any> {
     logger.debug("Initiate delete", compositeId);
+
     await this.docClient.delete({
       TableName: this.todoTable,
       Key: {
