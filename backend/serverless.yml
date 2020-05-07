@@ -32,7 +32,8 @@ provider:
         - dynamodb:PutItem
         - dynamodb:GetItem
         - dynamodb:Query
-        - dynamodb:DeleteItem # CONSIDER removing this privilege
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
       Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
     - Effect: Allow
       Action:
@@ -40,8 +41,14 @@ provider:
         - dynamodb:PutItem
         - dynamodb:GetItem
         - dynamodb:Query
-        - dynamodb:DeleteItem # TODO: Reign in privileges, use userId index
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
       Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/*
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+      Resource: arn:aws:s3:::${self:provider.environment.IMAGES_BUCKET}/*
 custom:
   documentation:
     models:
@@ -205,6 +212,7 @@ resources:
         Bucket: !Ref ImagesBucket
 
     ### Secrets Management
+    # FIXME pretty sure this can be removed
     KMSKey:
       Type: AWS::KMS::Key
       Properties:

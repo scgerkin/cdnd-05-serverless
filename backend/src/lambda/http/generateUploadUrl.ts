@@ -23,9 +23,10 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   const existingTodo: TodoItem = await getExistingTodoItem(todoId, event);
 
   if (!existingTodo) {
+    logger.error("Could not find existing todo.", {todoId: todoId});
     return {
       statusCode: 404,
-      body: `Todo with id '${todoId}' not found`
+      body: JSON.stringify({error:`Todo with id '${todoId}' not found`})
     };
   }
 
@@ -35,22 +36,38 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     await updateItemWithImageUrl(existingTodo, imageId);
   }
   catch (error) {
+    logger.error("Could not update with image url", {error: error});
     return {
       statusCode: 500,
       headers: {
         'Access-Control-Allow-Origin': '*'
       },
       body: JSON.stringify({
-        error: "Unable to update Todo Item with image url."
+        error: error
       })
     }
   }
 
-  const url = s3.getSignedUrl('putObject', {
-    Bucket: bucketName,
-    Key: imageId,
-    Expires: urlExpiration
-  });
+  let url: string;
+  try {
+    url = s3.getSignedUrl('putObject', {
+      Bucket: bucketName,
+      Key: imageId,
+      Expires: urlExpiration
+    });
+    logger.info("Signed url", {url: url});
+  }
+  catch (error) {
+    logger.error("Error creating signed url", {error: error});
+    return {
+      statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({error: error})
+    }
+  }
+
 
   return {
     statusCode: 201,
