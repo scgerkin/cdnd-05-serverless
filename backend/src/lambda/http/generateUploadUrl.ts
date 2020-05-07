@@ -1,27 +1,20 @@
+import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
+import * as AWS from 'aws-sdk'
 import 'source-map-support/register'
-import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
-import { DocumentClient } from 'aws-sdk/clients/dynamodb'
-import * as DynamoDB from 'aws-sdk/clients/dynamodb'
-import * as AWS  from 'aws-sdk'
-
 import * as uuid from 'uuid'
-
-import { createLogger } from '../../utils/logger'
 import { TodoItem } from '../../models/TodoItem'
-//import { updateExisting } from '../../services/todoService'
-import { TodoCompositeId } from '../../models/TodoCompositeId'
-import { getUserId } from '../utils'
 import { TodoRepository } from '../../repository/todoRepository'
+import { createLogger } from '../../utils/logger'
+import { getUserId } from '../utils'
 
 const logger = createLogger('generateUploadUrl');
-const docClient: DocumentClient = new DynamoDB.DocumentClient();
+
 const s3 = new AWS.S3({
   signatureVersion: 'v4'
 });
 
 const repo = new TodoRepository();
 
-const todosTable = process.env.TODOS_TABLE;
 const bucketName = process.env.IMAGES_BUCKET;
 const urlExpiration = process.env.URL_EXPIRATION;
 
@@ -38,7 +31,17 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
   const imageId = uuid.v4();
 
-  const todoWithImage = await updateItemWithImageUrl(existingTodo, imageId);
+  try {
+    await updateItemWithImageUrl(existingTodo, imageId);
+  }
+  catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        error: "Unable to update Todo Item with image url."
+      })
+    }
+  }
 
   const url = s3.getSignedUrl('putObject', {
     Bucket: bucketName,
@@ -55,7 +58,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 }
 
 async function getExistingTodoItem(todoId: string, event: APIGatewayProxyEvent): Promise<TodoItem> {
-  return await repo.getByTodoId({userId: getUserId(event), todoId: todoId});
+  return await repo.getByTodoId({ userId: getUserId(event), todoId: todoId });
 }
 
 async function updateItemWithImageUrl(existingTodo: TodoItem, imageId: string): Promise<TodoItem> {

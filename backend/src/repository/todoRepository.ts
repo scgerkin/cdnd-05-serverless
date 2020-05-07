@@ -14,7 +14,6 @@ export class TodoRepository {
   constructor(
     private readonly docClient: DocumentClient = createDynamoDBClient(),
     private readonly todoTable = process.env.TODOS_TABLE,
-    private readonly userIdIndex = process.env.USER_ID_INDEX
   ) {}
 
   async getAllByUserId(userId: string): Promise<TodoItem[]> {

@@ -10,7 +10,7 @@ import { TodoItem } from '../../models/TodoItem'
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   console.log('create called');
 
-  // TODO validate request
+  // CONSIDER validate request
   const createTodoRequest: CreateTodoRequest = JSON.parse(event.body);
 
   let userId: string;
