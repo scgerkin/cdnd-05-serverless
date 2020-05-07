@@ -14,10 +14,10 @@ const jwksUrl = 'https://scgrk-dev.auth0.com/.well-known/jwks.json';
 export const handler = async (
   event: CustomAuthorizerEvent
 ): Promise<CustomAuthorizerResult> => {
-  logger.info('Authorizing a user', event.authorizationToken);
+  logger.debug('Authorizing a user', {AuthToken: event.authorizationToken});
   try {
     const jwtToken = await verifyToken(event.authorizationToken);
-    logger.info('User was authorized', jwtToken);
+    logger.debug('User was authorized', {token: jwtToken});
 
     return {
       principalId: jwtToken.sub,
@@ -53,30 +53,36 @@ export const handler = async (
 
 async function verifyToken(authHeader: string): Promise<JwtPayload> {
   const token = getToken(authHeader);
-  logger.info("Token", token);
+  // logger.debug("Token from getToken", {token: token});
+  console.log(token);
 
   const jwt: Jwt = decode(token, {complete: true}) as Jwt;
-  logger.info("JWT", jwt);
+  // logger.debug("JWT", {jwt: jwt});
+  console.log(jwt);
 
-  const response = await Axios.get<Jwk[]>(jwksUrl);
-  logger.info("JWK Request response", response);
+  const response = await Axios.get(jwksUrl);
+  // logger.debug("JWK Request response", {responsedata: response.data});
+  console.log(response.data);
+  const jwkList: Jwk[] = response.data.keys;
 
-
-  const jwk: Jwk = response.data.reduce(key => {
+  const jwk: Jwk = jwkList.reduce(key => {
     if (key.kid === jwt.header.kid) {
       return key;
     }
   });
 
   if (!jwk) {
-    logger.error("Invalid signing key ID.");
+    logger.error("Invalid signing key ID. jwk not found");
+    console.log("JWK was null");
     throw new Error('Invalid signing key ID.');
   }
 
-  logger.info("JWK", jwk);
+  // logger.debug("JWK", {jwk:jwk});
+  console.log(jwk);
 
   const cert = addCertWrapper(jwk.x5c[0]);
-  logger.info("Cert", cert);
+  // logger.debug("Cert", {cert: cert});
+  console.log(cert);
 
   return verify(token, cert, {algorithms: [jwk.alg]}) as JwtPayload;
 }
