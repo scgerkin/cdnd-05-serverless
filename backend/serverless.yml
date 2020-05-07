@@ -63,6 +63,7 @@ functions:
     events:
       - http:
           method: get
+          authorizer: Auth
           path: todos
           cors: true
 
