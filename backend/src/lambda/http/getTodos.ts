@@ -19,6 +19,9 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     logger.error("Error retrieving User ID", error);
     return {
       statusCode: 400,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify(error)
     }
   }
@@ -32,6 +35,6 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     headers: {
       'Access-Control-Allow-Origin': '*'
     },
-    body: JSON.stringify(result)
+    body: JSON.stringify({"items": result})
   }
 }

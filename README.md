@@ -6,7 +6,7 @@ To implement this project, you need to implement a simple TODO application using
 
 This application will allow creating/removing/updating/fetching TODO items. Each TODO item can optionally have an attachment image. Each user only has access to TODO items that he/she has created.
 
-# TODO items
+# To-Do items
 
 The application should store TODO items, and each TODO item contains the following fields:
 

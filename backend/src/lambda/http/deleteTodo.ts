@@ -14,12 +14,15 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   let userId: string;
   try {
     userId = getUserId(event);
-    logger.debug("User ID", userId);
+    logger.debug("User ID", {userId: userId});
   }
   catch (error) {
-    logger.error("Error retrieving User ID", error);
+    logger.error("Error retrieving User ID", {error: error});
     return {
       statusCode: 400,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify(error)
     }
   }
@@ -29,20 +32,28 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     todoId: todoId
   });
 
+  logger.info("Composite ID", {compositeId: todoCompositeId})
+
   try {
-    deleteTodo(todoCompositeId);
+    await deleteTodo(todoCompositeId);
   }
   catch (error) {
-    logger.error("Error deleting Todo Item", error);
+    logger.error("Error deleting Todo Item", {error: error});
     return {
       statusCode: 400,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify(error)
     }
   }
 
-  logger.info("Deleted Item by todo ID", todoId);
+  logger.info("Deleted Item by todo ID", {todoId: todoId});
   return {
     statusCode: 202,
-    body: JSON.stringify(todoId)
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    },
+    body: ""
   }
 }

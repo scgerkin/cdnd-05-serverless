@@ -20,7 +20,7 @@ export async function createNew(createTodo: CreateTodoRequest, userId: string): 
     userId: userId,
     todoId: uuid.v4(),
     createdAt: String(new Date()),
-    name: createTodo.name,
+    name: createTodo.name,      // FIXME this attribute needs to be renamed
     dueDate: createTodo.dueDate, // CONSIDER validating is date & not before current
     done: false
   });
