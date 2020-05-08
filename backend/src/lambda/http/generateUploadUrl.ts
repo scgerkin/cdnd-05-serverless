@@ -20,12 +20,31 @@ const urlExpiration = process.env.URL_EXPIRATION;
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const todoId = event.pathParameters.todoId;
-  const existingTodo: TodoItem = await getExistingTodoItem(todoId, event);
+
+  let existingTodo: TodoItem;
+  try {
+    existingTodo = await getExistingTodoItem(todoId, event);
+    if (!existingTodo) {
+      throw new Error(`Todo with id '${todoId}' not found`);
+    }
+  }
+  catch (error) {
+    return {
+      statusCode: 404,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({error:error})
+    };
+  }
 
   if (!existingTodo) {
     logger.error("Could not find existing todo.", {todoId: todoId});
     return {
       statusCode: 404,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify({error:`Todo with id '${todoId}' not found`})
     };
   }
